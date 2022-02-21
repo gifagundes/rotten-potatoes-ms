@@ -1,4 +1,4 @@
-# Projeto Rotten Tomatoes Microsserviços
+pp# Projeto Rotten Tomatoes Microsserviços
 
 ## Estrutura do projeto
 Esse projeto é baseado em uma aquitetura de Microsserviços e depende de outros 2 projetos pra funcionar
@@ -36,7 +36,10 @@ REVIEW_SERVICE_URI: http://review:8282
 
 <p>docker-compose up -d --remove-orphans --build</p>
 
+<p>A aplicação estará disponível no seguinte endereço localhost:5000</p>
+
 <p>Para desmontar o ambiente execute</p>
 
 <p>docker-compose down</p>
+
 
