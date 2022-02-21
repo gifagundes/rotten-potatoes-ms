@@ -1,0 +1,82 @@
+version: "3.9"
+
+volumes:
+  rotten_potatoes_ms:
+  apireviews_files:
+  dbreviews_data:
+  dbmovies_data:
+  apimovies_files:
+
+networks:
+  rotten_potatoes_ms:
+    driver: bridge
+
+services:
+  apirottenpotatoesms:
+    volumes:
+      - rotten_potatoes_ms:/data/src
+    image: gfagundes/rotten_potatoes_ms:${TAG_IMAGE_VERSION_API_MS}
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      MOVIE_SERVICE_URI: http://apimovies:8181
+      REVIEW_SERVICE_URI: http://apireviews
+    depends_on:
+      - apimovies
+      - apireviews
+    networks:
+      - rotten_potatoes_ms
+
+  apireviews:
+    restart: always
+    image: gfagundes/reviews:${TAG_IMAGE_VERSION_REVIEWS}
+    build: 
+      context: ../review/src/Review.Web
+      dockerfile: ./Dockerfile
+    depends_on:
+      - dbreviews
+    volumes:
+      - apireviews_files:/data/src
+    networks:
+      - rotten_potatoes_ms
+    environment:
+      ConnectionStrings__MyConnection: Host=dbreviews;Database=dbreviews;Username=postgreuser;Password=postgrepwd;
+
+  dbreviews:
+    restart: always
+    image: postgres:${TAG_IMAGE_VERSION_DATABASE_POSTGRE}
+    volumes:
+      - dbreviews_data:/data/db
+    networks:
+      - rotten_potatoes_ms
+    environment:
+      POSTGRES_PASSWORD: postgrepwd
+      POSTGRES_USER: postgreuser
+      POSTGRES_DB: dbreviews
+
+  apimovies:
+    image: gfagundes/movies:${TAG_IMAGE_VERSION_MOVIES}
+    build:
+      context: ../movie/src
+      dockerfile: ./Dockerfile
+    depends_on:
+      - dbmovies
+    environment:
+      MONGODB_URI: mongodb://mongouser:mongopwd@dbmovies:27017/admin
+    volumes:
+      - apimovies_files:/data/src
+    networks:
+      - rotten_potatoes_ms
+
+  dbmovies:
+    image: mongo:${TAG_IMAGE_VERSION_DATABASE_MONGO}
+    networks:
+      - rotten_potatoes_ms
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongouser
+      MONGO_INITDB_ROOT_PASSWORD: mongopwd
+    volumes:
+      - dbmovies_data:/data/db 
